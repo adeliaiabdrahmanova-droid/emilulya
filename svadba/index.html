@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Эмиль & Юлия | Приглашение на свадьбу</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1a1a1a;
+      font-family: 'Montserrat Alternates', 'Century Gothic', 'Gothic', 'Arial', sans-serif;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Обложка с фото svadba */
+    .cover-page {
+      background: url('svadba.jpg') center center / cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 42px 0 55px 0;
+      aspect-ratio: 720 / 1280;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .cover-page::after {
+      content: '';
+      position: absolute;
+      bottom: -50px;
+      left: 0;
+      width: 100%;
+      height: 280px;
+      background: linear-gradient(to bottom, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.1) 15%,
+        rgba(255,255,255,0.3) 30%,
+        rgba(255,255,255,0.6) 50%,
+        rgba(255,255,255,0.85) 70%,
+        #ffffff 85%,
+        #ffffff 100%);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .cover-top {
+      text-align: center;
+      padding-top: 42px;
+    }
+    .cover-bottom {
+      text-align: center;
+      padding-bottom: 55px;
+    }
+    .cover-date {
+      font-family: 'Great Vibes', cursive;
+      font-weight: 700;
+      font-size: clamp(3.5rem, 14vw, 6rem);
+      letter-spacing: 4px;
+      color: #000000;
+      text-shadow: none;
+      font-style: normal;
+    }
+    .names-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .name-emil {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(4rem, 14vw, 7rem);
+      color: rgb(183, 132, 167);
+      transform: translate(-10px, -35px);
+      display: inline-block;
+    }
+    .name-amp {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(3.5rem, 12vw, 6rem);
+      color: rgba(255, 245, 220, 0.65);
+      display: inline-block;
+    }
+    .name-yulia {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(4rem, 14vw, 7rem);
+      color: rgb(183, 132, 167);
+      transform: translate(10px, 20px);
+      display: inline-block;
+    }
+    .cover-quote {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-weight: 300;
+      font-size: clamp(1rem, 4vw, 1.4rem);
+      color: rgba(255, 245, 220, 0.85);
+      background: transparent;
+      display: inline-block;
+      padding: 0.2rem 0.4rem;
+      margin-top: 0.8rem;
+      line-height: 1.5;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+    .cover-quote .line1 {
+      display: block;
+    }
+    .cover-quote .line2 {
+      display: block;
+    }
+
+    /* Страница 2 (приглашение) */
+    .invitation-page {
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      aspect-ratio: 720 / 1280;
+      position: relative;
+      z-index: 1;
+      padding: 55px 0 45px 0;
+    }
+    .invitation-content {
+      text-align: center;
+      width: 85%;
+      max-width: 550px;
+      margin-top: 0;
+      margin-bottom: 25px;
+    }
+    .invitation-title {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-weight: 600;
+      font-size: clamp(2rem, 7vw, 3rem);
+      color: rgb(69, 43, 28);
+      margin-bottom: 1.8rem;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .invitation-title .first-letter {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(3.5rem, 12vw, 5.5rem);
+      font-weight: normal;
+      display: inline-block;
+      margin-right: 0.1em;
+      line-height: 1;
+      color: rgb(69, 43, 28);
+    }
+    .invitation-title .rest-title {
+      display: inline-block;
+    }
+    .invitation-text {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-weight: 400;
+      font-size: clamp(1rem, 4vw, 1.35rem);
+      color: rgb(69, 43, 28);
+      line-height: 1.7;
+    }
+    .invitation-text p {
+      margin-bottom: 1.2rem;
+    }
+    
+    /* avgust — ШИРИНА 350px */
+    .img-avgust {
+      width: 350px;
+      max-width: 90%;
+      margin: -5px auto 0 auto;
+      cursor: default;
+      pointer-events: none;
+    }
+    .img-avgust img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    .img-ruki {
+      width: auto;
+      max-width: 700px;
+      margin: 30px auto 0 auto;
+      cursor: default;
+      pointer-events: none;
+    }
+    .img-ruki img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Страница 3 (место проведения) */
+    .location-page {
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: auto;
+      height: auto;
+      padding: 40px 0 20px 0;
+    }
+    .location-content {
+      text-align: center;
+      width: 85%;
+      max-width: 550px;
+    }
+    .location-title {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-weight: 600;
+      font-size: clamp(2rem, 7vw, 3rem);
+      color: rgb(69, 43, 28);
+      margin-bottom: 2rem;
+    }
+    .location-address {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-weight: 400;
+      font-size: clamp(1rem, 4vw, 1.35rem);
+      color: rgb(69, 43, 28);
+      line-height: 1.6;
+      margin-bottom: 0.3rem;
+    }
+    .map-container {
+      width: 85%;
+      max-width: 500px;
+      margin: 25px auto 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border: 1px solid #e0d6cc;
+    }
+    #map {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #1a2a3a;
+    }
+    .map-note {
+      font-size: 0.7rem;
+      color: #a0816e;
+      margin-top: 8px;
+      text-align: center;
+      font-family: 'Montserrat Alternates', sans-serif;
+    }
+
+    /* Страница 4 (заключительная) */
+    .final-page {
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 720 / 1280;
+    }
+    .final-rectangle {
+      width: 76%;
+      max-width: 500px;
+      height: 76%;
+      background: rgb(69, 43, 28);
+      margin: 12% 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0 25px 0;
+    }
+    .flower-top, .flower-bottom {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .flower-img {
+      max-width: 90px;
+      width: 100%;
+      height: auto;
+    }
+    
+    .program-title {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-weight: 600;
+      font-size: clamp(2rem, 7vw, 3rem);
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    
+    .schedule-table {
+      width: 100%;
+      max-width: 350px;
+      margin: 0 auto;
+    }
+    .schedule-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1rem;
+      gap: 20px;
+    }
+    .schedule-time {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-weight: 500;
+      font-size: clamp(1rem, 4vw, 1.35rem);
+      color: #ffffff;
+      text-align: right;
+      min-width: 100px;
+    }
+    .schedule-event {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-weight: 400;
+      font-size: clamp(1rem, 4vw, 1.35rem);
+      color: #ffffff;
+      text-align: left;
+      flex: 1;
+    }
+
+    .dresscode {
+      text-align: center;
+      margin-top: 10px;
+      width: 90%;
+    }
+    .dresscode-text {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-weight: 400;
+      font-size: clamp(0.85rem, 3.8vw, 1.1rem);
+      color: #ffffff;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .color-palette {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .color-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      border: 2px solid rgba(255,255,255,0.6);
+    }
+    .color-label {
+      font-family: 'Montserrat Alternates', sans-serif;
+      font-size: 0.75rem;
+      color: #ffffff;
+      margin-top: 5px;
+      text-align: center;
+    }
+    .color-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* АНИМАЦИЯ */
+    .animate-item {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    
+    .animate-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .cover-page .animate-item {
+      transition-delay: 0.2s;
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        max-width: 100%;
+      }
+      .final-rectangle {
+        width: 84%;
+        min-height: 68%;
+        margin: 16% 0;
+        padding: 15px 0 20px 0;
+      }
+      .invitation-page {
+        padding: 40px 0 35px 0;
+      }
+      .invitation-content {
+        margin-bottom: 20px;
+      }
+      .name-emil {
+        transform: translate(-6px, -25px);
+      }
+      .name-yulia {
+        transform: translate(6px, 12px);
+      }
+      .cover-page::after {
+        height: 200px;
+        bottom: -30px;
+      }
+      .map-container {
+        margin: 20px auto 0 auto;
+      }
+      .location-page {
+        padding: 30px 0 15px 0;
+      }
+      .img-avgust {
+        width: auto;
+        max-width: 80%;
+        margin: 0 auto 0 auto;
+      }
+      .img-ruki {
+        max-width: 95%;
+        margin: 25px auto 0 auto;
+      }
+      .cover-date {
+        font-size: clamp(2.8rem, 12vw, 4.5rem);
+      }
+      .flower-img {
+        max-width: 65px;
+      }
+      .schedule-time {
+        min-width: 80px;
+      }
+      .schedule-row {
+        gap: 15px;
+        margin-bottom: 0.8rem;
+      }
+      .program-title {
+        margin-bottom: 0.3rem;
+      }
+      .color-circle {
+        width: 32px;
+        height: 32px;
+      }
+      .dresscode-text {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Страница 1: Обложка -->
+  <div class="page cover-page">
+    <div class="cover-top">
+      <div class="cover-date animate-item">08.08.2026</div>
+    </div>
+    <div class="cover-bottom">
+      <div class="names-container">
+        <span class="name-emil animate-item">Эмиль</span>
+        <span class="name-amp animate-item">&</span>
+        <span class="name-yulia animate-item">Юлия</span>
+      </div>
+      <div class="cover-quote animate-item">
+        <span class="line1">Однажды мы встретились</span>
+        <span class="line2">и больше не захотели расставаться</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Страница 2: Приглашение -->
+  <div class="page invitation-page">
+    <div class="invitation-content">
+      <div class="invitation-title animate-item">
+        <span class="first-letter">Д</span>
+        <span class="rest-title">орогие гости</span>
+      </div>
+      <div class="invitation-text animate-item">
+        <p>С радостью и волнением приглашаем вас<br>разделить с нами один из самых важных дней<br>в нашей жизни — день нашей свадьбы!</p>
+        <p>Это не просто торжество, а момент,<br>когда две души становятся одной,<br>когда любовь обретает свой дом.</p>
+        <p>Мы хотим, чтобы вы стали частью<br>этого волшебства в кругу самых близких,<br>в атмосфере тепла, уюта и искренней радости.</p>
+      </div>
+    </div>
+    
+    <div class="img-avgust animate-item">
+      <img src="avgust.png" alt="avgust">
+    </div>
+    
+    <div class="img-ruki animate-item">
+      <img src="ruki.png" alt="ruki">
+    </div>
+  </div>
+
+  <!-- Страница 3: Место проведения -->
+  <div class="page location-page">
+    <div class="location-content">
+      <div class="location-title animate-item">Место проведения</div>
+      <div class="location-address animate-item">
+        Республика Башкортостан,<br>
+        г. Ишимбай, ул. Блохина, д. 19
+        <br><br>
+        Кафе «Мария»
+      </div>
+    </div>
+    <div class="map-container animate-item">
+      <div id="map"></div>
+      <div class="map-note">🗺️ Можно двигать и масштабировать</div>
+    </div>
+  </div>
+
+  <!-- Страница 4: Программа и дресс-код -->
+  <div class="page final-page">
+    <div class="final-rectangle">
+      <div class="flower-top animate-item">
+        <img src="cvetok.png" alt="цветок" class="flower-img">
+      </div>
+      
+      <div class="program-title animate-item">Программа дня</div>
+      
+      <div class="schedule-table animate-item">
+        <div class="schedule-row">
+          <span class="schedule-time">14:30</span>
+          <span class="schedule-event">Встреча гостей</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-time">15:00</span>
+          <span class="schedule-event">Свадебная церемония</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-time">15:30</span>
+          <span class="schedule-event">Фотосессия и фуршет</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-time">16:00</span>
+          <span class="schedule-event">Торжественный банкет</span>
+        </div>
+      </div>
+      
+      <div class="dresscode animate-item">
+        <div class="dresscode-text">
+          У нас нет строгого дресс-кода, но мы будем рады,<br>если ваш образ поддержит нашу цветовую гамму:
+        </div>
+        <div class="color-palette">
+          <div class="color-item">
+            <div class="color-circle" style="background: #F5E6D3;"></div>
+            <span class="color-label">Бежевый</span>
+          </div>
+          <div class="color-item">
+            <div class="color-circle" style="background: #6B3E2C;"></div>
+            <span class="color-label">Коричневый</span>
+          </div>
+          <div class="color-item">
+            <div class="color-circle" style="background: #FFFFFF;"></div>
+            <span class="color-label">Белый</span>
+          </div>
+          <div class="color-item">
+            <div class="color-circle" style="background: #E8D8C8;"></div>
+            <span class="color-label">Шампань</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flower-bottom animate-item">
+        <img src="cvetok.png" alt="цветок" class="flower-img">
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const cafeLat = 53.436232;
+    const cafeLng = 56.033102;
+    
+    const map = L.map('map').setView([cafeLat, cafeLng], 18);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
+      maxZoom: 19,
+      minZoom: 14
+    }).addTo(map);
+    
+    const marker = L.marker([cafeLat, cafeLng]).addTo(map);
+    marker.bindPopup('<b>Кафе «Мария»</b><br>ул. Блохина, 19, г. Ишимбай').openPopup();
+    
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+    
+    const animateItems = document.querySelectorAll('.animate-item');
+    
+    const checkVisibility = () => {
+      animateItems.forEach(item => {
+        const rect = item.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight - 100;
+        if (isVisible) {
+          item.classList.add('visible');
+        }
+      });
+    };
+    
+    window.addEventListener('scroll', checkVisibility);
+    window.addEventListener('load', checkVisibility);
+    checkVisibility();
+  </script>
+</body>
+</html>
